@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Comparison Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --bg-card: #1e1e1e;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --border-color: #333333;
+            --hover-bg: #2a2a2a;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(26, 26, 26, 0.95);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        /* Input Section */
+        .input-section {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        .input-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .prompt-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .model-selector {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .model-chip {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+        }
+
+        .model-chip:hover {
+            background: var(--hover-bg);
+            transform: translateY(-1px);
+        }
+
+        .model-chip.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Results Section */
+        .results-section {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .model-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .model-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-blue);
+        }
+
+        .card-header {
+            background: var(--bg-tertiary);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .model-name {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .model-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            min-height: 200px;
+        }
+
+        .response-text {
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .response-text.loading {
+            color: var(--text-primary);
+            font-style: italic;
+        }
+
+        .card-footer {
+            background: var(--bg-tertiary);
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .action-btn:hover {
+            background: var(--hover-bg);
+            color: var(--text-primary);
+        }
+
+        /* Loading States */
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            animation: loading 1.4s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes loading {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-actions {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .model-selector {
+                justify-content: center;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--hover-bg);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">Model Studio</div>
+                <div class="header-actions">
+                    <button class="action-btn">History</button>
+                    <button class="action-btn">Settings</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Input Section -->
+        <section class="input-section">
+            <div class="input-container">
+                <textarea
+                    class="prompt-input"
+                    placeholder="Enter your prompt here... Compare how different AI models respond to the same question."
+                ></textarea>
+                <div class="input-actions">
+                    <div class="model-selector">
+                        <div class="model-chip active">GPT-4</div>
+                        <div class="model-chip">Claude</div>
+                        <div class="model-chip">Gemini</div>
+                        <div class="model-chip">Llama</div>
+                    </div>
+                    <button class="generate-btn">
+                        <span>Generate</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <main class="results-section">
+            <div class="results-grid">
+                <!-- GPT-4 Card -->
+                <div class="model-card">
+                    <div class="card-header">
+                        <div class="model-name">GPT-4</div>
+                        <div class="model-status">
+                            <div class="status-indicator"></div>
+                            <span>Ready</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="response-text loading">
+                            <div class="loading-dots">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="model-info">OpenAI • 128K context</div>
+                        <div class="action-buttons">
+                            <button class="action-btn">Copy</button>
+                            <button class="action-btn">Like</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Claude Card -->
+                <div class="model-card">
+                    <div class="card-header">
+                        <div class="model-name">Claude 3</div>
+                        <div class="model-status">
+                            <div class="status-indicator"></div>
+                            <span>Ready</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="response-text loading">
+                            <div class="loading-dots">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="model-info">Anthropic • 200K context</div>
+                        <div class="action-buttons">
+                            <button class="action-btn">Copy</button>
+                            <button class="action-btn">Like</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gemini Card -->
+                <div class="model-card">
+                    <div class="card-header">
+                        <div class="model-name">Gemini Pro</div>
+                        <div class="model-status">
+                            <div class="status-indicator"></div>
+                            <span>Ready</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="response-text loading">
+                            <div class="loading-dots">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="model-info">Google • 32K context</div>
+                        <div class="action-buttons">
+                            <button class="action-btn">Copy</button>
+                            <button class="action-btn">Like</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Llama Card -->
+                <div class="model-card">
+                    <div class="card-header">
+                        <div class="model-name">Llama 3</div>
+                        <div class="model-status">
+                            <div class="status-indicator"></div>
+                            <span>Ready</span>
+                        </div>
+                    </div>
+                    <div class="card-content">
+                        <div class="response-text loading">
+                            <div class="loading-dots">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="model-info">Meta • 8K context</div>
+                        <div class="action-buttons">
+                            <button class="action-btn">Copy</button>
+                            <button class="action-btn">Like</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Add interactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            // Model chip selection
+            const modelChips = document.querySelectorAll('.model-chip');
+            modelChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            });
+
+            // Generate button
+            const generateBtn = document.querySelector('.generate-btn');
+            const promptInput = document.querySelector('.prompt-input');
+
+            generateBtn.addEventListener('click', function() {
+                if (promptInput.value.trim()) {
+                    simulateGeneration();
+                }
+            });
+
+            // Action buttons
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.textContent;
+                    if (action === 'Copy') {
+                        this.textContent = 'Copied!';
+                        setTimeout(() => {
+                            this.textContent = 'Copy';
+                        }, 2000);
+                    } else if (action === 'Like') {
+                        this.style.background = 'var(--accent-orange)';
+                        this.style.color = 'white';
+                        this.textContent = 'Liked';
+                    }
+                });
+            });
+        });
+
+        function simulateGeneration() {
+            const responseTexts = document.querySelectorAll('.response-text');
+
+            responseTexts.forEach((textEl, index) => {
+                textEl.classList.add('loading');
+
+                setTimeout(() => {
+                    textEl.classList.remove('loading');
+                    textEl.textContent = `This is a sample response from model ${index + 1}. The actual implementation would connect to real AI model APIs to generate responses based on your prompt input.`;
+                }, 1000 + (index * 500));
+            });
+        }
+    </script>
+</body>
+</html>
